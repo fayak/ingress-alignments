@@ -22,6 +22,9 @@ Open the python script file, and set your settings accordinly to your preference
 |lookup_nearest|Number of portals around the one selected to look for alignments|> 25 to 200 (higher will be more precise, but computing intensive|
 |max_dist|Set restriction on the maximum distance between a portal and the alignment origin|**True** or False|
 |max_dist_val|if *max_dist* set on **True**, the maximum distance in km|0.5 to 10
+|limit|Do we limit the range of searching ?| **True** or False
+|limit_range|The number of km to look for alignements starting from *limit_origin|10 to 50|
+|limit_origin|The origin coordinates| valid coordinates|
 
 When you're done, run the script and wait for the results to come. It can take a long time . When it's done computing, go to [hamstermap](http://www.hamstermap.com/quickmap.php) to get a preview of the alignments found.
 ## How does it works ?

@@ -11,15 +11,20 @@ import threading
 
 ##########################
 
-angle_max = 8 # In degrees
-points_aligned = 10
+angle_max = 6 # In degrees
+points_aligned = 15
 
 # Set limitation
-lookup_nearest = 100
+lookup_nearest = 70
 
 # Set max distance between portal to origin
 max_dist = True # either True or False
 max_dist_val = 5 # In km
+
+# Set on True to limit the range
+limit = True
+limit_range = 10
+limit_origin = (48.6,2.1)
 
 ##########################
 
@@ -120,11 +125,12 @@ def manage_aligned(best_alignments, aligned):
     return best_alignments
 
 class compute(threading.Thread):
-    def __init__(self, tree, geo):
+    def __init__(self, tree, geo, j):
         threading.Thread.__init__(self)
         self.state = 0
         self.tree = tree
         self.geo = geo
+        self.j = j
 
     def run(self):
         self.state = 1
@@ -134,9 +140,10 @@ class compute(threading.Thread):
         self.is_cluster_aligned()
         self.state = 2
         
-    def set_params(self, origin):
+    def set_params(self, origin, j):
         self.origin = origin
         self.state = 0
+        self.j = j
         
     def is_cluster_aligned(self):
         global best_alignments
@@ -171,13 +178,16 @@ def get_best_alignments(geo):
         nb_points = len(geo)
         progress_calc.progress_max = float(nb_points)
         nb_threads = (os.cpu_count() + 1)
-        threads = [compute(tree, geo)] * nb_threads
+        threads = [compute(tree, geo, 0)] * nb_threads
         
         j = 0
         for i in range(nb_points): # For each point
             progress_calc(i)
 
             origin = geo[i]
+            if limit:
+                if geodesic(limit_origin, origin).km > limit_range:
+                    continue
             #nearest = tree.query([origin], lookup_nearest)
             #points = [geo[index] for index in tree.query([origin], lookup_nearest)[1][0][1:]]
             done = False
@@ -185,10 +195,10 @@ def get_best_alignments(geo):
                 done = True
                 if j == 0 and threads[j].is_alive():
                     threads[j].join()
-                    threads[j].set_params(origin)
+                    threads[j].set_params(origin, j)
                     threads[j].run()
                 elif not threads[j].is_alive():
-                    threads[j].set_params(origin)
+                    threads[j].set_params(origin, j)
                     threads[j].run()
                 else:
                     done = False
